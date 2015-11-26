@@ -11,8 +11,8 @@ from collections import defaultdict
 import flask
 
 # Name of JSON containing information on available DBs.
-CORPORA_FILENAME = 'corpora.json'
-CORPORA_LISTFILE = 'available_corpora.json'
+LANG_FILENAME = 'languages.json'
+LANG_LISTFILE = 'available_languages.json'
 # App settings. IMPORTANT: set DEBUG = False for publicly accessible
 # installations, the debug mode allows arbitrary code execution.
 DEBUG = True # TODO J
@@ -39,6 +39,7 @@ LANG_PLACEHOLDER = '{{ LANGUAGE }}'
 CONTENT_START = '<!-- CONTENT-START -->'
 CONTENT_END = '<!-- CONTENT-END -->'
 ERROR_PLACEHOLDER = '{{ ERROR }}'
+PARSER_PLACEHOLDER = '{{ PARSER_INFO }}'
 
 # Visualization wrapping
 visualization_start = '<pre><code class="conllu">'
@@ -51,35 +52,36 @@ def server_url(host=HOST, port=PORT):
         url = 'http://' + url # TODO do this properly
     return url
 
-def load_corpora(filename=CORPORA_FILENAME):
+def load_lang_info(filename=LANG_FILENAME):
     try:
         with open(filename) as f:
             return json.loads(f.read())
     except Exception, e:
-        print 'Failed to load data on corpora from', filename
+        print 'Failed to load data from', filename
         raise
 
-def load_corpora_list(filename=CORPORA_LISTFILE):
+def load_lang_list(filename=LANG_LISTFILE):
 
     try:
         with open(filename) as f:
             return json.loads(f.read())
     except Exception, e:
-        print 'Failed to load data on corpora from', filename
+        print 'Failed to load data from', filename
         raise
 
-def get_database_directory(dbname):
-    return load_corpora().get(dbname, '')
+def get_parser_info(language):
+    return load_lang_info().get(language, '')
 
 
 def parse(language, texthash):
     script_dir = os.path.join(PARSER_PATH,language)
+    tmp_file=os.path.join(TEMPFILE_PATH,texthash)
 
-    command = 'cat %s.txt | ./parser_wrapper.sh'%(os.path.join(TEMPFILE_PATH,texthash))
+    command = 'cat %s.txt | ./run_%s.sh > %s.conllu ; cat %s.conllu'%(tmp_file,language,tmp_file,tmp_file)
     print command
 
     args = [command]
-    p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, cwd=script_dir)
     (out, err) = p.communicate()
     return out, err
 
@@ -93,10 +95,10 @@ def get_template(fn=RESULT_TEMPLATE):
         return f.read()
 
 def render_languages(selected):
-    corpora = load_corpora_list()
-    print corpora
+    languages = load_lang_list()
+    print languages
     options = []
-    for name in corpora:
+    for name in languages:
         s = ' selected="selected"' if name == selected else ''
         options.append('<option value="%s"%s>%s</option>' % (name, s, name))
     return '\n'.join(options)
@@ -116,6 +118,7 @@ def fill_template(template, content='', error='', language='', text=''): ## J: c
     #filled = filled.replace(QUERY_PLACEHOLDER, t_q)
     filled = filled.replace(LANGS_PLACEHOLDER, render_languages(language))
     filled = filled.replace(LANG_PLACEHOLDER, language)
+    filled = filled.replace(PARSER_PLACEHOLDER, get_parser_info(language))
     if len(error) < 1:
         filled = filled.replace(ERROR_PLACEHOLDER, '')
     else:
@@ -156,8 +159,11 @@ def test():
 
 
 def _root():
-    language = flask.request.form.get(LANG_PARAMETER)
-    text = flask.request.form[USERDATA_PARAMETER]
+    language = flask.request.form.get(LANG_PARAMETER,'')
+    try:
+        text = flask.request.form[USERDATA_PARAMETER]
+    except:
+        text=""
 
     print text, language
 

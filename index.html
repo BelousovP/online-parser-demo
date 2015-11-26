@@ -48,6 +48,7 @@
 		  style="display:inline; width:auto">
 	  {{ OPTIONS }}
 	  </select>
+        Parser: <a id="parser_info" href="{{ PARSER_INFO }}">{{ PARSER_INFO }}</a>
 
 	<!--  <input id="queryInput" class="form-control"
 		 type="text" name="search"
@@ -56,13 +57,17 @@
 	  <button type="submit" class="btn btn-primary">Search!</button> -->
 
         <p>
-	<a id='types_link' href="{{ SERVER_URL }}/types/{{ LANGUAGE }}">Show types</a>
-        <a class="Query Language" href="http://bionlp.utu.fi/searchexpressions-new.html">Query Language</a>
+	Documentation: <a id='doc' href="http://universaldependencies.github.io/docs/">http://universaldependencies.github.io/docs/</a>
         </p>
     
-
+        <!--
         <input type="text" class="form-control" name="userdata"
             placeholder="Enter text" >
+        -->
+
+        <textarea type="text" class="form-control" name="userdata"
+            placeholder="Enter text" ></textarea>
+
         <button type="submit" class="btn btn-primary">Parse!</button>
 
 	</div>
