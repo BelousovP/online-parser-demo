@@ -15,10 +15,10 @@ LANG_FILENAME = 'languages.json'
 LANG_LISTFILE = 'available_languages.json'
 # App settings. IMPORTANT: set DEBUG = False for publicly accessible
 # installations, the debug mode allows arbitrary code execution.
-DEBUG = True # TODO J
-HOST = 'localhost'
-#PORT = 80 # TODO J
-PORT = 5042 # TODO J
+DEBUG = False 
+HOST = 'http://bionlp-www.utu.fi/parser_demo/'
+PORT = 80 # TODO J
+#PORT = 5042 # TODO J
 STATIC_PATH = '/static'
 LANG_PARAMETER = 'language'
 USERDATA_PARAMETER = 'userdata'
@@ -46,8 +46,8 @@ visualization_start = '<pre><code class="conllu">'
 visualization_end = '</code></pre>'
 
 def server_url(host=HOST, port=PORT):
-    url = host#:%d' % (host, port) # TODO J 
-    url = host+':%d' % (port) # TODO J 
+    url = host#:%d' % (host, port)  
+    #url = host+':%d' % (port)  
     if not url.startswith('http://'):
         url = 'http://' + url # TODO do this properly
     return url
@@ -73,16 +73,15 @@ def get_parser_info(language):
     return load_lang_info().get(language, '')
 
 
-def parse(language, texthash):
+def parse(language, text):
     script_dir = os.path.join(PARSER_PATH,language)
-    tmp_file=os.path.join(TEMPFILE_PATH,texthash)
+    #tmp_file=os.path.join(TEMPFILE_PATH,texthash)
 
-    command = 'cat %s.txt | ./run_%s.sh > %s.conllu ; cat %s.conllu'%(tmp_file,language,tmp_file,tmp_file)
-    print command
-
+    command = './run_%s.sh'%(language)
     args = [command]
-    p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, cwd=script_dir)
-    (out, err) = p.communicate()
+    p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, cwd=script_dir)
+    (out, err) = p.communicate(input=text.encode(u"utf-8"))
+    #print repr(out), err
     return out, err
 
 
@@ -103,7 +102,7 @@ def render_languages(selected):
         options.append('<option value="%s"%s>%s</option>' % (name, s, name))
     return '\n'.join(options)
 
-def fill_template(template, content='', error='', language='', text=''): ## J: content=parsed data
+def fill_template(template, content='', error='', language=''): ## J: content=parsed data
     # TODO: use jinja
 
     assert CONTENT_START in template
@@ -113,9 +112,6 @@ def fill_template(template, content='', error='', language='', text=''): ## J: c
     print type(header), type(content), type(trailer)
     filled = header + content + trailer
     filled = filled.replace(SERVER_URL_PLACEHOLDER, server_url())
-    #t_q = query[:]
-    #t_q = t_q.replace('"', '&quot;')
-    #filled = filled.replace(QUERY_PLACEHOLDER, t_q)
     filled = filled.replace(LANGS_PLACEHOLDER, render_languages(language))
     filled = filled.replace(LANG_PLACEHOLDER, language)
     filled = filled.replace(PARSER_PLACEHOLDER, get_parser_info(language))
@@ -128,9 +124,10 @@ def fill_template(template, content='', error='', language='', text=''): ## J: c
 app = flask.Flask(__name__, static_url_path=STATIC_PATH)
 
 
-def parse_and_fill_template(language, texthash):
+def parse_and_fill_template(language, text):
     template = get_template()
-    out,err = parse(language,texthash)
+    print >> sys.stderr, (u"USERINPUT: "+text.replace(u"\n", " ").replace(u"\r", " ")).encode(u"utf-8")
+    out,err = parse(language, text)
     
     visualizations = []
     for block in out.split('\n\n')[:-1]:
@@ -138,7 +135,7 @@ def parse_and_fill_template(language, texthash):
         visualizations.append(visualization_start +
                               block + '\n\n' +
                               visualization_end)
-    return fill_template(template, ''.join(visualizations), '', language, texthash)
+    return fill_template(template, ''.join(visualizations), '', language)
 
 
 
@@ -153,33 +150,24 @@ def types(db):
         return "Internal error: %s\n%s" % (str(e), traceback.format_exc())
 
 
-@app.route("/test") ## J: testing @app.route
-def test():
-    return "Testing @app.route()"
-
-
 def _root():
     language = flask.request.form.get(LANG_PARAMETER,'')
     try:
         text = flask.request.form[USERDATA_PARAMETER]
     except:
-        text=""
+        text=u""
 
-    print text, language
+    #print text, language
 
     if not text or not language:
         # missing info, just show index
         template = get_index()
         return fill_template(template,language=language)
     else:
-        texthash=str(abs(hash(text))) ## TODO J
-        fname = os.path.join(TEMPFILE_PATH,texthash+u".txt")
-        with codecs.open(fname,u"wt",u"utf-8") as f:
-            print >> f, text
         # non-empty query, search and display
-        return parse_and_fill_template(language, texthash)
+        return parse_and_fill_template(language, text)
 
-@app.route("/", methods=['GET', 'POST']) ## J: main, runs first
+@app.route("/", methods=['GET', 'POST']) 
 def root():
     try:
         return _root()
