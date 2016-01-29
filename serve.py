@@ -13,6 +13,8 @@ import flask
 # Name of JSON containing information on available DBs.
 LANG_FILENAME = 'languages.json'
 LANG_LISTFILE = 'available_languages.json'
+DEFAULT_LANG = 'Finnish'
+
 # App settings. IMPORTANT: set DEBUG = False for publicly accessible
 # installations, the debug mode allows arbitrary code execution.
 DEBUG = False 
@@ -79,9 +81,9 @@ def parse(language, text):
 
     command = './run_%s.sh'%(language)
     args = [command]
-    p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, cwd=script_dir)
-    (out, err) = p.communicate(input=text.encode(u"utf-8"))
-    #print repr(out), err
+    p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, cwd=script_dir, env={"LANG":"en_US.UTF-8"})
+    (out, err) = p.communicate(input=text.encode("utf-8"))
+    #print >> sys.stderr, "T=",repr(text), "UT=", text.encode("utf-8"), "O=",repr(out), "E=",repr(err)
     return out, err
 
 
@@ -98,8 +100,9 @@ def render_languages(selected):
     print languages
     options = []
     for name in languages:
+        d = 'selected' if name==DEFAULT_LANG else '' # make Finnish the default
         s = ' selected="selected"' if name == selected else ''
-        options.append('<option value="%s"%s>%s</option>' % (name, s, name))
+        options.append('<option %s value="%s"%s>%s</option>' % (d, name, s, name))
     return '\n'.join(options)
 
 def fill_template(template, content='', error='', language=''): ## J: content=parsed data
@@ -151,7 +154,7 @@ def types(db):
 
 
 def _root():
-    language = flask.request.form.get(LANG_PARAMETER,'')
+    language = flask.request.form.get(LANG_PARAMETER, DEFAULT_LANG)
     try:
         text = flask.request.form[USERDATA_PARAMETER]
     except:

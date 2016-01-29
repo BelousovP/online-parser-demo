@@ -68,11 +68,12 @@
         <textarea type="text" class="form-control" name="userdata"
             placeholder="Enter text" ></textarea>
 
-        <button type="submit" class="btn btn-primary">Parse!</button>
+        <button id="parse_button" type="submit" class="btn btn-primary">Parse!</button>
 
 	</div>
       </form>
 
+      <div id="processing"><!-- EMPTY --></div>
 
       {{ ERROR }}
 
@@ -139,6 +140,12 @@
 <script>
 $("#types_link").attr("href", "{{ SERVER_URL }}/types/" + $("#db_sel option:selected").text())
 $("#db_sel").change(function() { $("#types_link").attr("href", "{{ SERVER_URL }}/types/" + $("#db_sel option:selected").text())/* do something here */ });
+</script>
+
+<script>
+$("#parse_button").click(function(){
+$("#processing").html("Waiting for the results. It takes a moment for the parser to load.");
+})
 </script>
 
     </body>
