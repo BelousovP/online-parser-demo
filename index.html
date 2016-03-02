@@ -88,12 +88,12 @@
 
     <div>
 
-    <p> Alternatively, you can upload a text file to be parsed. The results are given in a <a id='conllu' href="http://universaldependencies.org/format.html">CoNLL-U</a> formatted text file.
+    <p> Alternatively, you can upload a text file to be parsed. The results are given in a <a id='conllu' href="http://universaldependencies.org/format.html">CoNLL-U</a> formatted file.
     </p>
 
 <form action="{{ SERVER_URL }}/parsefile" method="post" enctype="multipart/form-data" id="fileform">
                     <input type="file" name="data_file" />
-                    <input type="submit" class="btn btn-primary" id="parse_file_button" value="Parse file!" />
+                    <input type="submit" class="btn btn-primary" id="parse_file_button" value="Parse!" />
             </div>
                 </form>
     <p></p>
@@ -173,7 +173,7 @@ $("#processing").html("Waiting for the results. It takes a moment for the parser
 
 <script>
 $("#parse_file_button").click(function(){
-$("#processing_file").html("Parsing file and waiting for the results. It takes a moment for the parser to load.");
+$("#processing_file").html("Waiting for the results. It takes a moment for the parser to load.");
 })
 </script>
 
