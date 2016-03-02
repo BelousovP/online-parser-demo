@@ -125,6 +125,7 @@ def fill_template(template, content='', error='', language=''): ## J: content=pa
     return filled
 
 app = flask.Flask(__name__, static_url_path=STATIC_PATH)
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 
 def parse_and_fill_template(language, text):
@@ -151,6 +152,26 @@ def types(db):
     except Exception, e:
         import traceback
         return "Internal error: %s\n%s" % (str(e), traceback.format_exc())
+
+@app.route('/parsefile',methods=["POST"])
+def parsefile():
+
+    language = flask.request.form.get(LANG_PARAMETER, DEFAULT_LANG)
+
+    f = flask.request.files['data_file']
+    if not f:
+        return "No file"
+    
+    data = f.stream.read().decode("utf-8")
+    print >> sys.stderr, (u"USERINPUT: "+data.replace(u"\n", " ").replace(u"\r", " ")).encode(u"utf-8")
+
+    result, err = parse(language, data)
+    print "ERROR:",err
+
+    response = flask.make_response(result)
+    response.headers["Content-Disposition"] = "attachment; filename=result.conllu"
+
+    return response
 
 
 def _root():

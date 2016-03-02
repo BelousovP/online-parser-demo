@@ -33,11 +33,12 @@
     <body>
 
    <nav class="navbar navbar-inverse navbar-static-top">
-        <a class="navbar-brand" href="#">Online Parser Demo
-   </a>
-   </nav>
+        <a class="navbar-brand" href="#">Online Parser Demo</a>
+   </nav> 
 
     <div class="container">
+
+        <a href="http://bionlp.utu.fi/">[Turku NLP Group]</a>
 
       <form class="query-form" action="{{ SERVER_URL }}" method="POST">
 	<div class="form-group">
@@ -48,7 +49,8 @@
 		  style="display:inline; width:auto">
 	  {{ OPTIONS }}
 	  </select>
-        Parser: <a id="parser_info" href="{{ PARSER_INFO }}">{{ PARSER_INFO }}</a>
+        <p> Parser: <a id="parser_info" href="{{ PARSER_INFO }}">{{ PARSER_INFO }}</a> </p>
+        
 
 	<!--  <input id="queryInput" class="form-control"
 		 type="text" name="search"
@@ -57,7 +59,7 @@
 	  <button type="submit" class="btn btn-primary">Search!</button> -->
 
         <p>
-	Documentation: <a id='doc' href="http://universaldependencies.github.io/docs/">http://universaldependencies.github.io/docs/</a>
+	Treebank documentation: <a id='doc' href="http://universaldependencies.github.io/docs/">http://universaldependencies.github.io/docs/</a>
         </p>
     
         <!--
@@ -83,8 +85,29 @@
       <!-- CONTENT-END -->
 
       <hr>
+
+    <div>
+
+    <p> Alternatively, you can upload a text file to be parsed. The results are given in a <a id='conllu' href="http://universaldependencies.org/format.html">CoNLL-U</a> formatted text file.
+    </p>
+
+<form action="/parsefile" method="post" enctype="multipart/form-data" id="fileform">
+                    <input type="file" name="data_file" />
+                    <input type="submit" class="btn btn-primary" id="parse_file_button" value="Parse file!" />
+            </div>
+                </form>
+    <p></p>
+    <div id="processing_file"><!-- EMPTY --></div>
+    <p></p>
+
+    
+    {{ ERROR }}
+
+    <hr>
+      <hr>
+
       <footer>
-        <p>&copy; University of Turku 2015</p>
+        <p>&copy; University of Turku 2016</p>
       </footer>
     </div> <!-- /container -->        
     
@@ -145,6 +168,12 @@ $("#db_sel").change(function() { $("#types_link").attr("href", "{{ SERVER_URL }}
 <script>
 $("#parse_button").click(function(){
 $("#processing").html("Waiting for the results. It takes a moment for the parser to load.");
+})
+</script>
+
+<script>
+$("#parse_file_button").click(function(){
+$("#processing_file").html("Parsing file and waiting for the results. It takes a moment for the parser to load.");
 })
 </script>
 
