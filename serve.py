@@ -19,8 +19,8 @@ DEFAULT_LANG = 'Finnish'
 # installations, the debug mode allows arbitrary code execution.
 DEBUG = False 
 HOST = 'http://bionlp-www.utu.fi/parser_demo/'
-PORT = 80 # TODO J
-#PORT = 5042 # TODO J
+PORT = 80 
+#PORT = 5042 
 STATIC_PATH = '/static'
 LANG_PARAMETER = 'language'
 USERDATA_PARAMETER = 'userdata'
@@ -166,7 +166,7 @@ def parsefile():
     print >> sys.stderr, (u"USERINPUT: "+data.replace(u"\n", " ").replace(u"\r", " ")).encode(u"utf-8")
 
     result, err = parse(language, data)
-    print "ERROR:",err
+    print >> sys.stderr, "ERROR:",err
 
     response = flask.make_response(result)
     response.headers["Content-Disposition"] = "attachment; filename=result.conllu"

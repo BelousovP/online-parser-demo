@@ -91,7 +91,7 @@
     <p> Alternatively, you can upload a text file to be parsed. The results are given in a <a id='conllu' href="http://universaldependencies.org/format.html">CoNLL-U</a> formatted text file.
     </p>
 
-<form action="/parsefile" method="post" enctype="multipart/form-data" id="fileform">
+<form action="{{ SERVER_URL }}/parsefile" method="post" enctype="multipart/form-data" id="fileform">
                     <input type="file" name="data_file" />
                     <input type="submit" class="btn btn-primary" id="parse_file_button" value="Parse file!" />
             </div>
